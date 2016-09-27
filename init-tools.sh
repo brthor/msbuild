@@ -9,7 +9,7 @@ __DOTNET_CMD=$__DOTNET_PATH/dotnet
 if [ -z "$__BUILDTOOLS_SOURCE" ]; then __BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json; fi
 __BUILD_TOOLS_PACKAGE_VERSION=$(cat $__scriptpath/BuildToolsVersion.txt)
 __DOTNET_TOOLS_VERSION=$(cat $__scriptpath/DotnetCLIVersion.txt)
-__BUILD_TOOLS_PATH=$__PACKAGES_DIR/Microsoft.DotNet.BuildTools/$__BUILD_TOOLS_PACKAGE_VERSION/lib
+__BUILD_TOOLS_PATH=$__PACKAGES_DIR/microsoft.dotnet.buildtools/$__BUILD_TOOLS_PACKAGE_VERSION/lib
 __PROJECT_JSON_PATH=$__TOOLRUNTIME_DIR/$__BUILD_TOOLS_PACKAGE_VERSION
 __PROJECT_JSON_FILE=$__PROJECT_JSON_PATH/project.json
 __PROJECT_JSON_CONTENTS="{ \"dependencies\": { \"Microsoft.DotNet.BuildTools\": \"$__BUILD_TOOLS_PACKAGE_VERSION\" }, \"frameworks\": { \"netcoreapp1.0\": { } } }"
@@ -116,18 +116,14 @@ if [ ! -e $__INIT_TOOLS_DONE_MARKER ]; then
         if [ ! -e "$__BUILD_TOOLS_PATH/init-tools.sh" ]; then echo "ERROR: Could not restore build tools correctly. See '$__init_tools_log' for more details."1>&2; fi
     fi
 
+    echo "Patching BuildTools..."
+    mv "$__scriptpath/buildtools_patch.sh $__BUILD_TOOLS_PATH/init-tools.sh"
+
     echo "Initializing BuildTools..."
     echo "Running: $__BUILD_TOOLS_PATH/init-tools.sh $__scriptpath $__DOTNET_CMD $__TOOLRUNTIME_DIR" >> $__init_tools_log
     $__BUILD_TOOLS_PATH/init-tools.sh $__scriptpath $__DOTNET_CMD $__TOOLRUNTIME_DIR >> $__init_tools_log
     if [ "$?" != "0" ]; then
         echo "ERROR: An error occured when trying to initialize the tools. Please check '$__init_tools_log' for more details."1>&2
-        exit 1
-    fi
-
-    echo "Updating CLI NuGet Frameworks map..."
-    cp $__TOOLRUNTIME_DIR/NuGet.Frameworks.dll $__TOOLRUNTIME_DIR/dotnetcli/sdk/$__DOTNET_TOOLS_VERSION >> $__init_tools_log
-    if [ "$?" != "0" ]; then
-        echo "ERROR: An error occured when updating Nuget for CLI . Please check '$__init_tools_log' for more details."1>&2
         exit 1
     fi
 
